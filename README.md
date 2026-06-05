@@ -2,7 +2,7 @@
 
 A perceptually driven framework for hand-motion-based faceted plastic deformation in smart glasses. Real-time AR aluminum can crushing simulation using hand tracking on XREAL Air 2 Ultra glasses.
 
-> Juyeon Ryu, Jong-Hyun Kim — College of Software and Convergence, Inha University
+![Overview](Images/Overview.png)
 
 ---
 
@@ -76,44 +76,27 @@ The angular derivative of the displacement function is approximated using centra
 
 ## Repository Structure
 
-```
-AR-AluminumCan-Crush-Simulation/
-│
-├── MeshDeformation/               # Version 1: CPU Gaussian deformation
-│   ├── Core/
-│   │   ├── AluminumCanSimulation.cs   # Main controller
-│   │   ├── CanMesh.cs                 # Runtime mesh + buckle region management
-│   │   └── BucklingAnimator.cs        # Animated deformation coroutine
-│   ├── HandTracking/
-│   │   ├── MRTKHandAdapter.cs         # OpenXR joint detection and curl computation
-│   │   ├── HandState.cs               # Hand data structure
-│   │   ├── HandCanContactDetector.cs  # Finger-to-can contact detection
-│   │   └── GripPatternRecognizer.cs   # Grip type classification
-│   ├── Interaction/
-│   │   ├── CanGrabSystem.cs           # Grab/release with physics
-│   │   ├── CanResetManager.cs         # Per-object reset
-│   │   └── ResetAllCans.cs            # Scene-wide reset
-│   └── Debug/
-│       └── SimpleDebugDisplay.cs      # On-device AR debug overlay
-│
-├── VertexShader/                  # Version 2: GPU faceted crush solver
-│   ├── Core/
-│   │   ├── AluminumCanSimulation.cs   # Main controller (UV-extraction variant)
-│   │   └── CanNormalMapDeformer.cs    # Crush-zone management + shader parameter push
-│   ├── Shaders/
-│   │   └── CanCrushShader.shader      # Vertex shader: crush function + normal correction
-│   ├── HandTracking/
-│   │   ├── MRTKHandAdapter.cs
-│   │   ├── HandState.cs
-│   │   ├── HandCanContactDetector.cs  # UV extraction via MeshCollider.Raycast
-│   │   └── GripPatternRecognizer.cs
-│   ├── Interaction/
-│   │   └── CanGrabSystem.cs
-│   └── Debug/
-│       └── SimpleDebugDisplay.cs
-│
-└── README.md
-```
+**MeshDeformation/** — Version 1: CPU-based Gaussian deformation
+
+Core: AluminumCanSimulation.cs is the main simulation controller. CanMesh.cs manages the runtime mesh and buckle regions. BucklingAnimator.cs handles the animated deformation coroutine.
+
+HandTracking: MRTKHandAdapter.cs handles OpenXR joint detection and curl computation. HandState.cs defines the hand data structure. HandCanContactDetector.cs detects finger-to-can contact. GripPatternRecognizer.cs classifies grip types.
+
+Interaction: CanGrabSystem.cs manages grab and release with physics. CanResetManager.cs handles per-object reset. ResetAllCans.cs performs scene-wide reset.
+
+Debug: SimpleDebugDisplay.cs provides the on-device AR debug overlay.
+
+**VertexShader/** — Version 2: GPU faceted crush solver
+
+Core: AluminumCanSimulation.cs is the main controller with UV-extraction support. CanNormalMapDeformer.cs manages crush zones and pushes parameters to the shader.
+
+Shaders: CanCrushShader.shader implements the cross-sectional crush function and shader-side normal correction.
+
+HandTracking: Same components as Version 1. HandCanContactDetector.cs is extended to support UV extraction via MeshCollider.Raycast.
+
+Interaction: CanGrabSystem.cs manages grab and release with physics.
+
+Debug: SimpleDebugDisplay.cs provides the on-device AR debug overlay.
 
 ---
 
@@ -195,12 +178,6 @@ The extended solver generates flattened facet regions and sharp fold-line transi
 Different crush patterns are generated depending on the user's finger contact position and input intensity — narrow-waist compression, asymmetric side collapse, and twisted faceted deformation. The proposed solver produces visually plausible can-like deformation patterns in real time while reflecting variations in user interaction.
 
 ![Real vs Virtual Can Comparison](Images/Fig11.png)
-
----
-
-## Related Publication
-
-> J. Ryu, J.-H. Kim, "A Perceptually Driven Framework for Hand-Motion-Based Faceted Plastic Deformation in Smart Glasses," Inha University, 2026.
 
 ---
 
