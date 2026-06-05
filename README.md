@@ -207,6 +207,28 @@ MRTK editor simulation uses the right hand for contact detection. Test grab and 
 
 ---
 
+## Results
+
+### Version 1 — Gaussian-based Deformation
+
+The baseline Gaussian model produces stable smooth local indentation in real time. Changes in hand motion are immediately reflected per frame, and similar deformation shapes are repeatedly produced under the same interaction conditions. However, the deformation shape is generally smooth and curved — flattened compressed regions and sharp fold lines observed in real thin cans cannot be represented.
+
+![Gaussian Deformation Results](Images/Fig9.png)
+
+### Version 2 — Faceted Crush Solver
+
+The extended solver generates flattened facet regions and sharp fold-line transitions depending on contact position, input intensity, and grip direction. Grip-aware compression direction estimation produces asymmetric deformation from both thumb and finger sides simultaneously, closer to real grasping behavior.
+
+![Faceted Crush Solver Results](Images/Fig10.png)
+
+### Comparison: Real vs. Virtual
+
+Different crush patterns are generated depending on the user's finger contact position and input intensity — narrow-waist compression, asymmetric side collapse, and twisted faceted deformation. The proposed solver produces visually plausible can-like deformation patterns in real time while reflecting variations in user interaction.
+
+![Real vs Virtual Can Comparison](Images/Fig11.png)
+
+---
+
 ## Related Publication
 
 > J. Ryu, J.-H. Kim, "A Perceptually Driven Framework for Hand-Motion-Based Faceted Plastic Deformation in Smart Glasses," Inha University, 2026.
