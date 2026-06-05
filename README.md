@@ -22,66 +22,35 @@ The project evolved through two architectural generations:
 
 ## Pipeline
 
+The system operates through a two-stage architecture split between CPU-side hand-motion analysis and GPU-side vertex deformation.
+
 ### Version 1 — Gaussian CPU Mesh Deformation
 
-```
-Hand Tracking Input
-        │
-        ▼
-Finger Curl / Pinch Distance
-        │
-        ▼
-Contact Detection (MeshCollider Raycast)
-        │
-        ▼
-Gaussian Falloff Displacement (CPU)
-  · distance-based weight w(d) = exp(-α(d/R)²)
-  · displacement: Δv = -n · D · s · w(d)
-        │
-        ▼
-mesh.vertices update → RecalculateNormals()
-        │
-        ▼
-Deformed Mesh (per frame)
-```
+**Step 1 - Hand-Motion Input (CPU)**
+Finger-curl values and pinch distance are collected from the OpenXR hand-tracking runtime each frame and normalized into a continuous input intensity *s* ∈ [0, 1].
+
+**Step 2 - Contact Detection (CPU)**
+Fingertip positions are tested against the can collider. Contact points are resolved via `MeshCollider.Raycast` to extract surface position and UV coordinates.
+
+**Step 3 - Gaussian Vertex Displacement (CPU)**
+Each vertex near the contact point is displaced inward along its surface normal using a Gaussian falloff weight. The full `mesh.vertices` array is updated and `RecalculateNormals()` is called every frame.
 
 ### Version 2 — GPU Faceted Crush Solver
 
-```
-Hand Tracking Input
-        │
-        ▼
-┌─────────────────────────────────────┐  CPU (per frame)
-│  Intensity Computation              │
-│  · Finger curl delta → sf           │
-│  · Pinch distance delta → sthumb    │
-│                                     │
-│  Grip-Aware Direction Estimation    │
-│  · Thumb: θthumb = atan2(x, z)      │
-│  · Fingers: θfinger = circular mean │
-│                                     │
-│  Crush-Zone Parameter Construction  │
-│  · Ck = (θk, hk, sk, ρk)           │
-│  · Up to 8 slots (_Crush0~_Crush7) │
-└─────────────────────────────────────┘
-        │  shader uniforms
-        ▼
-┌─────────────────────────────────────┐  GPU Vertex Shader
-│  Cross-Sectional Crush Function     │
-│  · δ = 0.9 · severity               │
-│  · α = arccos(1 - δ)  [fold angle] │
-│  · hf = -(1 - cosα)   [facet depth]│
-│  · Axial Gaussian falloff           │
-│  · Cap mask (top/bottom protection) │
-│                                     │
-│  Shader-Side Normal Correction      │
-│  · ∂d/∂θ via central differences   │
-│  · n' = normalize(n - t·slope)     │
-└─────────────────────────────────────┘
-        │
-        ▼
-Deformed Mesh + Corrected Normals (real-time)
-```
+**Step 1 - Intensity Computation (CPU)**
+Finger-curl delta and pinch-distance delta are normalized into per-finger input intensities and aggregated into a single severity value.
+
+**Step 2 - Grip-Aware Direction Estimation (CPU)**
+Thumb and finger contact positions are transformed into the object's local coordinate frame. The thumb direction θ_thumb is computed directly; the finger-side representative direction θ_finger is computed using a circular mean to avoid angular wraparound.
+
+**Step 3 - Crush-Zone Parameter Construction (CPU)**
+Each grip is encoded as two Vector4 crush zones — one for the thumb side and one for the finger side — containing compression direction, axial position, intensity, and influence range. Up to 8 slots are uploaded to the shader as uniforms each frame.
+
+**Step 4 - Faceted Vertex Deformation (GPU)**
+The vertex shader computes cylindrical coordinates for each vertex and evaluates the cross-sectional crush function: input intensity → normalized depth δ → fold-line angle α → facet depth h_f. Axial Gaussian falloff and a cap mask localize deformation around the contact position.
+
+**Step 5 - Shader-Side Normal Correction (GPU)**
+The angular derivative of the displacement function is approximated using central differences and used to correct each vertex normal, producing sharp lighting changes around fold lines without modifying mesh topology.
 
 ---
 
