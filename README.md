@@ -181,12 +181,4 @@ Different crush patterns are generated depending on the user's finger contact po
 
 ---
 
-## Acknowledgements
 
-This work was supported by INHA UNIVERSITY Research Grant and the National Research Foundation of Korea (NRF) grant funded by the Korea government (MSIT) (RS-2026-25474535).
-
----
-
-## License
-
-MIT License. See `LICENSE` for details.
